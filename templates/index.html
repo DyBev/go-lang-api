@@ -5,7 +5,7 @@
 {{ define "content" }}
 <h1>Go + HTMX (no framework)</h1>
 
-<p>Server time: <strong>{{ .Now }}</strong></p>
+<p>Server time: <strong hx-ext="sse" sse-connect="/events/time" sse-swap="message">{{ .Now }}</strong></p>
 
 <button
   hx-get="/partials/time"
