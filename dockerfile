@@ -17,6 +17,8 @@ FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /app
 
 COPY --from=builder /out/go-api /app/go-api
+COPY --from=builder /src/templates /app/templates
+COPY --from=builder /src/static /app/static
 
 EXPOSE 8080
 

@@ -1,0 +1,12 @@
+{{ define "time.html" }}
+<h1>Go + HTMX (no framework)</h1>
+
+<p>Server time: <strong>{{ .Now }}</strong></p>
+
+<button
+  hx-get="/partials/time"
+  hx-target="closest main"
+  hx-swap="innerHTML">
+  Refresh time
+</button>
+{{ end }}

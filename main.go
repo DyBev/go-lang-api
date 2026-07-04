@@ -1,51 +1,61 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
+	"html/template"
 	"log"
 	"net/http"
+	"time"
 )
 
-type Name struct {
-	Name string `json:"name"`
+type App struct {
+	templates *template.Template
 }
 
 func main() {
-	serveHello := func(w http.ResponseWriter, _ *http.Request) {
-		log.Print("request at GET /hello")
-		io.WriteString(w, "hello world")
+	tmpl := template.Must(template.ParseGlob("templates/**/*.html"))
+	tmpl = template.Must(tmpl.ParseGlob("templates/*.html"))
+
+	app := &App{templates: tmpl}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", app.index)
+	mux.HandleFunc("/partials/time", app.timePartial)
+
+	fs := http.FileServer(http.Dir("static"))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	addr := ":8080"
+	log.Printf("listening on %s", addr)
+	log.Fatal(http.ListenAndServe(addr, logging(mux)))
+}
+
+func (a *App) index(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
 	}
-
-	serveBye := func(w http.ResponseWriter, _ *http.Request) {
-		log.Print("request at GET /bye")
-		io.WriteString(w, "bye world")
+	data := map[string]any{
+		"Title": "Go + HTMX",
+		"Now":   time.Now().Format(time.RFC1123),
 	}
-
-	serveName := func(w http.ResponseWriter, req *http.Request) {
-		body, err := io.ReadAll(req.Body)
-		if err != nil {
-			log.Printf("error getting the body data %v", err)
-			io.WriteString(w, "error getting body data")
-			return
-		}
-		var bodyData Name
-		if err := json.Unmarshal(body, &bodyData); err != nil {
-			log.Printf("error unmarshalling the body data %v", err)
-			io.WriteString(w, "error unmarshalling body data")
-			return
-		}
-
-		log.Printf("request at POST /name body %s", bodyData.Name)
-		io.WriteString(w, fmt.Sprintf("hello %s", bodyData.Name))
+	if err := a.templates.ExecuteTemplate(w, "index.html", data); err != nil {
+		http.Error(w, "template error", http.StatusInternalServerError)
 	}
+}
 
+func (a *App) timePartial(w http.ResponseWriter, r *http.Request) {
+	data := map[string]any{
+		"Now": time.Now().Format(time.RFC1123),
+	}
+	if err := a.templates.ExecuteTemplate(w, "time.html", data); err != nil {
+		http.Error(w, "template error", http.StatusInternalServerError)
+	}
+}
 
-	http.HandleFunc("/hello", serveHello)
-	http.HandleFunc("/bye", serveBye)
-	http.HandleFunc("POST /name", serveName)
-
-	log.Print("listening on port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+func logging(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		log.Printf("%s %s %s", r.Method, r.URL.Path, time.Since(start))
+	})
 }
