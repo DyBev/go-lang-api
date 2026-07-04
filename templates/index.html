@@ -3,14 +3,34 @@
 {{ end }}
 
 {{ define "content" }}
-<h1>Go + HTMX (no framework)</h1>
+<h1>{{ .Title }}</h1>
 
 <p>Server time: <strong hx-ext="sse" sse-connect="/events/time" sse-swap="message">{{ .Now }}</strong></p>
 
-<button
-  hx-get="/partials/time"
-  hx-target="closest main"
-  hx-swap="innerHTML">
-  Refresh time
-</button>
+<h2> Tasks </h2>
+<div id="tasks" hx-ext="sse" sse-connect="/events/tasks">
+  <div
+    id="new-task"
+    sse-swap="newTask"
+    hx-target="this"
+    hx-swap="beforebegin"
+  ></div>
+</div>
+
+<form
+  class="contact-form"
+  hx-post="/api/register-task"
+  hx-target="#new-task"
+  hx-encoding="json"
+  hx-swap="beforebegin"
+  hx-on::after-request="if(event.detail.xhr.status === 200){ this.reset(); }"
+>
+  <label for="taskName"> task name </label>
+  <input id="taskName" name="taskName" />
+  <button
+    type="submit"
+  >
+    Refresh time
+  </button>
+</form>
 {{ end }}

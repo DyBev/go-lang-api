@@ -15,18 +15,23 @@ var openConns int64
 
 type App struct {
 	templates *template.Template
+	taskID int
 }
 
 func main() {
 	tmpl := template.Must(template.ParseGlob("templates/**/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("templates/*.html"))
 
-	app := &App{templates: tmpl}
+	app := &App{
+		templates: tmpl,
+		taskID: 0,
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.index)
-	mux.HandleFunc("/partials/time", app.timePartial)
 	mux.HandleFunc("/events/time", app.timeSSE)
+	mux.HandleFunc("/api/register-task", app.registerTask)
+	mux.HandleFunc("PATCH /api/complete-task/{taskID}", app.completeTask)
 
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
@@ -56,7 +61,7 @@ func (a *App) index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data := map[string]any{
-		"Title": "Go + HTMX",
+		"Title": "Go + HTMX task tracking",
 		"Now":   time.Now().Format(time.RFC1123),
 	}
 	if err := a.templates.ExecuteTemplate(w, "index.html", data); err != nil {

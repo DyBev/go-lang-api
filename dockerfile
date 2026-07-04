@@ -10,7 +10,7 @@ RUN go mod download
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w" -o /out/go-api .
+    go build -ldflags="-s -w" -o /out/go-api ./src
 
 FROM gcr.io/distroless/static-debian12:nonroot
 

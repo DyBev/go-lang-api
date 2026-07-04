@@ -1,0 +1,19 @@
+{{ define "task-uncompleted.html" }}
+<div id="task-{{ .TaskID }}" >
+  <p id="taskName">{{ .TaskName }}</p>
+  <button
+    type="button"
+    hx-patch="/api/complete-task/{{ .TaskID }}"
+    hx-target="#task-{{ .TaskID }}"
+    hx-swap="outerHTML"
+  >
+    complete task
+  </button>
+</div>
+{{ end }}
+
+{{ define "task-completed.html" }}
+<div id="{{ .TaskID }}" >
+  <p id="taskName"><s>{{ .TaskName }}</s></p>
+</div>
+{{ end }}
