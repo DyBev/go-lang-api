@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Build/test artifacts
+bin/
+dist/
+build/
+coverage/
+*.out
+*.test
+
+# Env and local config
+.env
+.env.*
+!.env.example
+
+# Docker files not needed in build context (optional)
+docker-compose.yml
+docker-compose.yaml
+
+# OS/temp junk
+tmp/
+temp/
+*.tmp
