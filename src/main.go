@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"net"
@@ -16,6 +15,7 @@ var openConns int64
 type App struct {
 	templates *template.Template
 	taskID int
+	hub *Hub
 }
 
 func main() {
@@ -25,11 +25,12 @@ func main() {
 	app := &App{
 		templates: tmpl,
 		taskID: 0,
+		hub: NewHub(),
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.index)
-	mux.HandleFunc("/events/time", app.timeSSE)
+	mux.HandleFunc("/events/hub", app.eventsSSE)
 	mux.HandleFunc("PUT /api/register-task", app.registerTask)
 	mux.HandleFunc("PATCH /api/complete-task/{taskID}", app.completeTask)
 
@@ -37,6 +38,7 @@ func main() {
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	go logRuntimeStats(10 * time.Second)
+	go app.timeSSE()
 
 	srv := &http.Server{
 		Addr: ":8080",
@@ -69,31 +71,16 @@ func (a *App) index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *App) timeSSE(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("X-Accel-Buffering", "no")
-
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		http.Error(w, "stream unsupported", http.StatusInternalServerError)
-		return
-	}
-
+func (a *App) timeSSE() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
-
-	fmt.Fprintf(w, "event: time\ndata: %s\n\n", time.Now().Format(time.RFC1123))
-	flusher.Flush()
-
 	for {
 		select {
-		case <-r.Context().Done():
-			return
 		case t := <-ticker.C:
-			fmt.Fprintf(w, "data: %s\n\n", t.Format(time.RFC1123))
-			flusher.Flush()
+			a.hub.Broadcast(Event{
+				Name: "time-update",
+				Data: t.Format(time.RFC1123),
+			})
 		}
 	}
 }

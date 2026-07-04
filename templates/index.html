@@ -5,13 +5,13 @@
 {{ define "content" }}
 <h1>{{ .Title }}</h1>
 
-<p>Server time: <strong hx-ext="sse" sse-connect="/events/time" sse-swap="message">{{ .Now }}</strong></p>
+<p>Server time: <strong sse-swap="time-update">{{ .Now }}</strong></p>
 
 <h2> Tasks </h2>
-<div id="tasks" hx-ext="sse" sse-connect="/events/tasks">
+<div id="tasks">
   <div
     id="new-task"
-    sse-swap="newTask"
+    sse-swap="task-created"
     hx-target="this"
     hx-swap="beforebegin"
   ></div>
@@ -20,9 +20,7 @@
 <form
   class="contact-form"
   hx-put="/api/register-task"
-  hx-target="#new-task"
-  hx-encoding="json"
-  hx-swap="beforebegin"
+  hx-swap="none"
   hx-on::after-request="if([200,201].includes(event.detail.xhr.status)){ this.reset(); }"
 >
   <label for="taskName"> task name </label>

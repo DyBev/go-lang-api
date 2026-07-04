@@ -1,11 +1,10 @@
 {{ define "task-uncompleted.html" }}
-<div id="task-{{ .TaskID }}" >
+<div id="task-{{ .TaskID }}" sse-swap="task-{{ .TaskID }}-completed">
   <p id="taskName">{{ .TaskName }}</p>
   <button
     type="button"
     hx-patch="/api/complete-task/{{ .TaskID }}"
-    hx-target="#task-{{ .TaskID }}"
-    hx-swap="outerHTML"
+    hx-swap="none"
   >
     complete task
   </button>

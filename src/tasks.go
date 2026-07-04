@@ -18,10 +18,6 @@ var tasks map[string]TaskData = make(map[string]TaskData)
 func (a *App) registerTask(w http.ResponseWriter, r *http.Request) {
 	a.taskID += 1
 	taskName := r.FormValue("taskName")
-	data := map[string]any{
-		"TaskID": a.taskID,
-		"TaskName": taskName,
-	}
 	tasks[strconv.Itoa(a.taskID)] = TaskData{
 		id: a.taskID,
 		name: taskName,
@@ -29,9 +25,10 @@ func (a *App) registerTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	if err := a.templates.ExecuteTemplate(w, "task-uncompleted.html", data); err != nil {
-		http.Error(w, "template error", http.StatusInternalServerError)
-	}
+	a.hub.Broadcast(Event{
+		Name: "task-created",
+		Data: strconv.Itoa(a.taskID),
+	})
 }
 
 func (a *App) completeTask(w http.ResponseWriter, r *http.Request) {
@@ -46,12 +43,9 @@ func (a *App) completeTask(w http.ResponseWriter, r *http.Request) {
 	taskData.completed = true
 	tasks[taskID] = taskData
 
-	data := map[string]string{
-		"TaskName": taskData.name,
-	}
-
-	if err := a.templates.ExecuteTemplate(w, "task-completed.html", data); err != nil {
-		http.Error(w, "template error", http.StatusInternalServerError)
-	}
+	a.hub.Broadcast(Event{
+		Name: "task-completed",
+		Data: taskID,
+	})
 }
 
