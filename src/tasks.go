@@ -28,6 +28,7 @@ func (a *App) registerTask(w http.ResponseWriter, r *http.Request) {
 		completed: false,
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	if err := a.templates.ExecuteTemplate(w, "task-uncompleted.html", data); err != nil {
 		http.Error(w, "template error", http.StatusInternalServerError)
 	}

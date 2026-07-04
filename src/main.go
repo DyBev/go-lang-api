@@ -30,7 +30,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.index)
 	mux.HandleFunc("/events/time", app.timeSSE)
-	mux.HandleFunc("/api/register-task", app.registerTask)
+	mux.HandleFunc("PUT /api/register-task", app.registerTask)
 	mux.HandleFunc("PATCH /api/complete-task/{taskID}", app.completeTask)
 
 	fs := http.FileServer(http.Dir("static"))

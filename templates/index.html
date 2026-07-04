@@ -19,11 +19,11 @@
 
 <form
   class="contact-form"
-  hx-post="/api/register-task"
+  hx-put="/api/register-task"
   hx-target="#new-task"
   hx-encoding="json"
   hx-swap="beforebegin"
-  hx-on::after-request="if(event.detail.xhr.status === 200){ this.reset(); }"
+  hx-on::after-request="if([200,201].includes(event.detail.xhr.status)){ this.reset(); }"
 >
   <label for="taskName"> task name </label>
   <input id="taskName" name="taskName" />
