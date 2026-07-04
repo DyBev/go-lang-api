@@ -82,7 +82,7 @@ func (a *App) eventsSSE(w http.ResponseWriter, r *http.Request) {
 
 				data := map[string]string{
 					"TaskID": taskID,
-					"TaskName": taskData.name,
+					"TaskName": taskData.TaskName,
 				}
 
 				var b bytes.Buffer
@@ -103,7 +103,7 @@ func (a *App) eventsSSE(w http.ResponseWriter, r *http.Request) {
 				}
 
 				data := map[string]string{
-					"TaskName": taskData.name,
+					"TaskName": taskData.TaskName,
 				}
 
 				var b bytes.Buffer

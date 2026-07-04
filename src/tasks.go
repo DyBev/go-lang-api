@@ -8,9 +8,9 @@ import (
 )
 
 type TaskData struct {
-	id int
-	name string
-	completed bool
+	TaskID int
+	TaskName string
+	Completed bool
 }
 
 var tasks map[string]TaskData = make(map[string]TaskData)
@@ -19,9 +19,9 @@ func (a *App) registerTask(w http.ResponseWriter, r *http.Request) {
 	a.taskID += 1
 	taskName := r.FormValue("taskName")
 	tasks[strconv.Itoa(a.taskID)] = TaskData{
-		id: a.taskID,
-		name: taskName,
-		completed: false,
+		TaskID: a.taskID,
+		TaskName: taskName,
+		Completed: false,
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -40,7 +40,7 @@ func (a *App) completeTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	taskData.completed = true
+	taskData.Completed = true
 	tasks[taskID] = taskData
 
 	a.hub.Broadcast(Event{

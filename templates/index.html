@@ -8,7 +8,14 @@
 <p>Server time: <strong sse-swap="time-update">{{ .Now }}</strong></p>
 
 <h2> Tasks </h2>
-<div id="tasks">
+<div id="tasks-list">
+  {{ range .Tasks }}
+    {{ if .Completed }}
+      {{ template "task-completed.html" . }}
+    {{ else }}
+      {{ template "task-uncompleted.html" . }}
+    {{ end }}
+  {{ end }}
   <div
     id="new-task"
     sse-swap="task-created"
