@@ -32,16 +32,18 @@ func main() {
 	mux.HandleFunc("/events/hub", app.eventsSSE)
 	mux.HandleFunc("PUT /api/register-task", app.registerTask)
 	mux.HandleFunc("PATCH /api/complete-task/{taskID}", app.completeTask)
+	mux.HandleFunc("GET /api/heartbeat", app.clientHeartbeat)
 
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	go logRuntimeStats(10 * time.Second)
 	go app.timeSSE()
+	go cleanupLoop()
 
 	srv := &http.Server{
 		Addr: ":8080",
-		Handler: logging(mux),
+		Handler: logging(clientIDMiddleware(mux)),
 
 		ConnState: func(conn net.Conn, state http.ConnState) {
 			switch state {
@@ -52,6 +54,7 @@ func main() {
 			}
 		},
 	}
+
 	log.Printf("listening on %s", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
 }

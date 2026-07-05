@@ -38,4 +38,9 @@
     Refresh time
   </button>
 </form>
+<div
+  hx-get="api/heartbeat"
+  hx-trigger="every 20s"
+  hx-swap="none"
+/>
 {{ end }}
