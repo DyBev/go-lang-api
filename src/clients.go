@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"time"
 
@@ -54,7 +53,6 @@ func clientIDMiddleware(next http.Handler) http.Handler {
 
 func (a *App) clientHeartbeat(w http.ResponseWriter, r *http.Request) {
 	clientID := r.Context().Value(clientIDKey).(string)
-	log.Printf("heartbeat for clientID: %s", clientID)
 
 	clients[clientID] = ClientData{
 		lastSeen: time.Now(),
@@ -70,7 +68,6 @@ func cleanupLoop() {
 
 		for clientID, client := range clients {
 			if now.Sub(client.lastSeen) > 60*time.Second {
-				log.Printf("removing clientID: %s, as not seen in the last 1 minute", clientID)
 				delete(clients, clientID)
 			}
 		}

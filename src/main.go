@@ -29,16 +29,17 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.index)
-	mux.HandleFunc("/events/hub", app.eventsSSE)
+	mux.HandleFunc("/events/hub/{roomID}", app.eventsSSE)
 	mux.HandleFunc("PUT /api/register-task", app.registerTask)
 	mux.HandleFunc("PATCH /api/complete-task/{taskID}", app.completeTask)
 	mux.HandleFunc("GET /api/heartbeat", app.clientHeartbeat)
+	mux.HandleFunc("POST /api/room/join", app.joinRoom)
+	mux.HandleFunc("PUT /api/room", app.createRoom)
 
 	fs := http.FileServer(http.Dir("static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	go logRuntimeStats(10 * time.Second)
-	go app.timeSSE()
 	go cleanupLoop()
 
 	srv := &http.Server{

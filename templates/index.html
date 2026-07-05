@@ -3,44 +3,101 @@
 {{ end }}
 
 {{ define "content" }}
-<h1>{{ .Title }}</h1>
-
-<p>Server time: <strong sse-swap="time-update">{{ .Now }}</strong></p>
-
-<h2> Tasks </h2>
-<div id="tasks-list">
-  {{ range .Tasks }}
-    {{ if .Completed }}
-      {{ template "task-completed.html" . }}
-    {{ else }}
-      {{ template "task-uncompleted.html" . }}
-    {{ end }}
+  {{ if .Room }}
+    {{ template "room-content.html" . }}
+  {{ else }}
+    {{ template "join-content.html" . }}
   {{ end }}
-  <div
-    id="new-task"
-    sse-swap="task-created"
-    hx-target="this"
-    hx-swap="beforebegin"
-  ></div>
-</div>
+{{ end }}
 
-<form
-  class="contact-form"
-  hx-put="/api/register-task"
-  hx-swap="none"
-  hx-on::after-request="if([200,201].includes(event.detail.xhr.status)){ this.reset(); }"
->
-  <label for="taskName"> task name </label>
-  <input id="taskName" name="taskName" />
-  <button
-    type="submit"
+{{ define "room-content.html" }}
+<main hx-ext="sse" sse-connect="/events/hub/{{ .RoomID }}" hx-vals='{"roomID":"{{ .RoomID }}"}'>
+  <h1>{{ .Title }}</h1>
+
+  <p>Server time: <strong sse-swap="time-update">{{ .Now }}</strong></p>
+
+  <h2> Tasks in room: {{ .RoomName }}</h2>
+  <p><i>Join with code: {{ .RoomCode }}</i></p>
+  <div id="tasks-list">
+    {{ range .Tasks }}
+      {{ if .Completed }}
+        {{ template "task-completed.html" . }}
+      {{ else }}
+        {{ template "task-uncompleted.html" . }}
+      {{ end }}
+    {{ end }}
+    <div
+      id="new-task"
+      sse-swap="task-created"
+      hx-target="this"
+      hx-swap="beforebegin"
+    ></div>
+  </div>
+
+  <form
+    class="contact-form"
+    hx-put="/api/register-task"
+    hx-swap="none"
+    hx-on::after-request="if([200,201].includes(event.detail.xhr.status)){ this.reset(); }"
   >
-    Refresh time
-  </button>
-</form>
-<div
-  hx-get="api/heartbeat"
-  hx-trigger="every 20s"
-  hx-swap="none"
-/>
+    <label for="taskName"> task name </label>
+    <input id="taskName" name="taskName" />
+    <button
+      type="submit"
+    >
+      Refresh time
+    </button>
+  </form>
+  <div
+    hx-get="api/heartbeat"
+    hx-trigger="every 20s"
+    hx-swap="none"
+  />
+</main>
+{{ end }}
+
+{{ define "join-content.html" }}
+<main>
+  <h2>Join or Create a Room</h2>
+
+  <form hx-put="/api/room"
+        hx-target="#app"
+        hx-swap="innerHTML">
+    <label for="createRoom" >Create room</label>
+    <input id="createRoom" name="room-name" placeholder="room name" />
+    <button>Create</button>
+  </form>
+
+  <form hx-post="/api/room/join"
+        hx-target="#app"
+        hx-swap="innerHTML">
+    <label for="joinRoom" >Join room via code</label>
+    <input id="joinRoom" name="room-code" placeholder="Room join code" />
+    <button>Join</button>
+  </form>
+</main>
+{{ end }}
+
+{{ define "join-content-error.html" }}
+<main>
+  <h2>Join or Create a Room</h2>
+
+  <p>{{ .ErrorMessage }}</p>
+
+  <form hx-put="/api/room"
+        hx-target="#app"
+        hx-swap="innerHTML">
+    <label for="createRoom" >Create room</label>
+    <input id="createRoom" name="room-name" placeholder="room name" />
+    <button>Create</button>
+  </form>
+
+  <form hx-post="/api/room/join"
+        hx-target="#app"
+        hx-swap="innerHTML">
+    <label for="joinRoom" >Join room via code</label>
+    <input id="joinRoom" name="room-code" placeholder="Room join code" />
+    <button>Join</button>
+  </form>
+</main>
 {{ end }}
